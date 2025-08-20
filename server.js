@@ -124,6 +124,15 @@ async function updateDatabaseConfig(newConfig) {
 // Initialize database on startup
 initializeDatabase();
 
+// Root route for health check
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Talent Profiles API is running',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API Routes
 
 // GET /api/profiles - Get all profiles
@@ -785,12 +794,17 @@ app.get('/api/database/config', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Database: ${dbConfig.database} on ${dbConfig.host}:${dbConfig.port}`);
-  console.log(`👤 User: ${dbConfig.user}`);
-});
+// Start server (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Database: ${dbConfig.database} on ${dbConfig.host}:${dbConfig.port}`);
+    console.log(`👤 User: ${dbConfig.user}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
